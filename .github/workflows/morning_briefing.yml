@@ -1,0 +1,37 @@
+# .github/workflows/morning_briefing.yml
+
+name: Morning Market Intelligence Agent
+
+on:
+  schedule:
+    # 05:15 UTC = 06:15 CET / 07:15 CEST (Monday through Friday)
+    - cron: '15 5 * * 1-5'
+  workflow_dispatch: # Allows manual trigger from the GitHub UI
+
+jobs:
+  run-morning-agent:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Morning Worker Pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python main_worker.py

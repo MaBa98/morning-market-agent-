@@ -16,8 +16,8 @@ class SupabaseManager:
     """
     
     def __init__(self):
-        supabase_url: str = os.environ.get("https://qlpjeckpgmxyeghliejx.supabase.co", "")
-        supabase_key: str = os.environ.get("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFscGplY2twZ214eWVnaGxpZWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwMDM0OTIsImV4cCI6MjEwODU3OTQ5Mn0.snmVXYjOcUApCBYQjKdT01-DvM-t43hZs-PDEjywhTc", "")
+        supabase_url: str = os.environ.get("SUPABASE_URL", "")
+        supabase_key: str = os.environ.get("SUPABASE_KEY", "")
         
         if not supabase_url or not supabase_key:
             raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be configured.")

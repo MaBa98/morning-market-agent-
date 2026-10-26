@@ -117,7 +117,7 @@ class MorningAgentPipeline:
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=prompt_content,
             config=config
         )
@@ -157,7 +157,7 @@ class MorningAgentPipeline:
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
             synthesis_response = self.gemini_client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.8-flash",
                 contents=synthesis_prompt,
                 config=config
             )
@@ -205,7 +205,7 @@ class MorningAgentPipeline:
         full_context = "\n".join(context_parts)
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-3.1-pro",
             contents=full_context,
             config=config
         )

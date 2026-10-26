@@ -122,7 +122,7 @@ class MorningAgentPipeline:
         for attempt in range(max_retries):
             try:
                 response = self.gemini_client.models.generate_content(
-                    model="gemini-3.8-flash",
+                    model="gemini-3.8-live",
                     contents=prompt_content,
                     config=config
                 )
@@ -175,7 +175,7 @@ class MorningAgentPipeline:
             for attempt in range(max_retries):
                 try:
                     synthesis_response = self.gemini_client.models.generate_content(
-                        model="gemini-3.8-flash",
+                        model="gemini-3.8-live",
                         contents=synthesis_prompt,
                         config=config
                     )
@@ -237,7 +237,7 @@ class MorningAgentPipeline:
         for attempt in range(max_retries):
             try:
                 response = self.gemini_client.models.generate_content(
-                    model="gemini-4-argon",
+                    model="gemini-3.8-flash",
                     contents=full_context,
                     config=config
                 )

@@ -3,6 +3,7 @@
 import os
 import logging
 import time
+import random
 from typing import Optional
 
 from google import genai
@@ -100,7 +101,26 @@ class MorningAgentPipeline:
         
         if not tavily_key:
             logger.warning("TAVILY_API_KEY is not set. Node 2 (Deep Research) will be skipped if anomalies are detected.")
-
+    
+    def _safe_generate(self, model: str, contents: str, config: types.GenerateContentConfig):
+        """Metodo scudo centralizzato per chiamare Gemini con Exponential Backoff."""
+        max_retries = 4
+        for attempt in range(max_retries):
+            try:
+                return self.gemini_client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                    config=config
+                )
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Generazione fallita definitivamente dopo {max_retries} tentativi.")
+                    raise e
+                
+                sleep_time = (5 * (2 ** attempt)) + random.uniform(1, 3)
+                logger.warning(f"Network/API Drop ({e}). Tentativo {attempt + 1}/{max_retries}. Ritento in {sleep_time:.1f}s...")
+                time.sleep(sleep_time)
+                
     def _run_node_1_triage(self, payload: HarvestedPayload) -> TriageOutputSchema:
         """
         NODE 1: Triage and Anomaly Detection.
@@ -117,23 +137,11 @@ class MorningAgentPipeline:
         
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
-        max_retries = 4
-        response = None
-        for attempt in range(max_retries):
-            try:
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=prompt_content,
-                    config=config
-                )
-                break  # Se ha successo, esce dal loop
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
-                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
-                
-                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
-                time.sleep(5)
+        response = self._safe_generate(
+            model="gemini-3.8-flash",
+            contents=prompt_content,
+            config=config
+        )
     
         
         triage_output = TriageOutputSchema.model_validate_json(response.text)
@@ -170,23 +178,11 @@ class MorningAgentPipeline:
             
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
-            max_retries = 4
-            response = None
-            for attempt in range(max_retries):
-                try:
-                    synthesis_response = self.gemini_client.models.generate_content(
-                        model="gemini-3.8-flash",
-                        contents=synthesis_prompt,
-                        config=config
-                    )
-                    break  # Se ha successo, esce dal loop
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
-                        raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
-                    
-                    logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
-                    time.sleep(5)
+            synthesis_response = self._safe_generate(
+                model="gemini-3.8-flash",
+                contents=synthesis_prompt,
+                config=config
+            )
             
             
             logger.info("Node 2 Complete: Research synthesized.")
@@ -231,24 +227,11 @@ class MorningAgentPipeline:
             
         full_context = "\n".join(context_parts)
         
-        max_retries = 4
-        response = None
-        
-        for attempt in range(max_retries):
-            try:
-                response = self.gemini_client.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=full_context,
-                    config=config
-                )
-                break  # Se ha successo, esce dal loop
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
-                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
-                
-                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
-                time.sleep(5)
+        synthesis_response = self._safe_generate(
+                model="gemini-3.8-flash",
+                contents=synthesis_prompt,
+                config=config
+            )
         
         
         playbook_output = MorningPlaybookSchema.model_validate_json(response.text)

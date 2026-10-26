@@ -91,7 +91,7 @@ class MorningAgentPipeline:
 
     def __init__(self):
         # Initialize the Google GenAI client using the new SDK
-        self._client = genai.Client(api_key=os.environ.get("_API_KEY"))
+        self.gemini_client = genai.Client(api_key=os.environ.get("_API_KEY"))
         
         # Initialize Tavily client for deep research
         tavily_key = os.environ.get("TAVILY_API_KEY")

@@ -91,7 +91,7 @@ class MorningAgentPipeline:
 
     def __init__(self):
         # Initialize the Google GenAI client using the new SDK
-        self.gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+        self._client = genai.Client(api_key=os.environ.get("_API_KEY"))
         
         # Initialize Tavily client for deep research
         tavily_key = os.environ.get("TAVILY_API_KEY")
@@ -116,8 +116,8 @@ class MorningAgentPipeline:
         
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
-        response = self.gemini_client.models.generate_content(
-            model="gemini-3.8-flash",
+        response = self._client.models.generate_content(
+            model="gemini-2.0-flash",
             contents=prompt_content,
             config=config
         )
@@ -157,7 +157,7 @@ class MorningAgentPipeline:
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
             synthesis_response = self.gemini_client.models.generate_content(
-                model="gemini-3.8-flash",
+                model="gemini-2.0-flash",
                 contents=synthesis_prompt,
                 config=config
             )
@@ -205,7 +205,7 @@ class MorningAgentPipeline:
         full_context = "\n".join(context_parts)
         
         response = self.gemini_client.models.generate_content(
-            model="gemini-3.1-pro",
+            model="gemini-1.5-pro",
             contents=full_context,
             config=config
         )

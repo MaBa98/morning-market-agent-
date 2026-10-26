@@ -117,7 +117,7 @@ class MorningAgentPipeline:
         
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
-        max_retries = 3
+        max_retries = 4
         response = None
         for attempt in range(max_retries):
             try:
@@ -170,7 +170,7 @@ class MorningAgentPipeline:
             
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
-            max_retries = 3
+            max_retries = 4
             response = None
             for attempt in range(max_retries):
                 try:
@@ -231,7 +231,7 @@ class MorningAgentPipeline:
             
         full_context = "\n".join(context_parts)
         
-        max_retries = 3
+        max_retries = 4
         response = None
         
         for attempt in range(max_retries):

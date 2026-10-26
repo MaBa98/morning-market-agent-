@@ -2,6 +2,7 @@
 
 import os
 import logging
+import time
 from typing import Optional
 
 from google import genai
@@ -116,10 +117,23 @@ class MorningAgentPipeline:
         
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
-        response = self.gemini_client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt_content,
-            config=config
+        max_retries = 3
+        response = None
+        for attempt in range(max_retries):
+            try:
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=prompt_content,
+                    config=config
+                )
+                break  # Se ha successo, esce dal loop
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
+                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
+                
+                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
+                time.sleep(5)
         )
         
         triage_output = TriageOutputSchema.model_validate_json(response.text)
@@ -156,11 +170,24 @@ class MorningAgentPipeline:
             
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
-            synthesis_response = self.gemini_client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=synthesis_prompt,
-                config=config
-            )
+            max_retries = 3
+            response = None
+            for attempt in range(max_retries):
+            try:
+                synthesis_response = self.gemini_client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=synthesis_prompt,
+                    config=config
+                )
+                break  # Se ha successo, esce dal loop
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
+                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
+                
+                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
+                time.sleep(5)
+            
             
             logger.info("Node 2 Complete: Research synthesized.")
             return synthesis_response.text
@@ -204,11 +231,25 @@ class MorningAgentPipeline:
             
         full_context = "\n".join(context_parts)
         
-        response = self.gemini_client.models.generate_content(
-            model="gemini-4-argon",
-            contents=full_context,
-            config=config
-        )
+        max_retries = 3
+        response = None
+        
+        for attempt in range(max_retries):
+            try:
+                response = self.gemini_client.models.generate_content(
+                    model="gemini-4-argon",
+                    contents=full_context,
+                    config=config
+                )
+                break  # Se ha successo, esce dal loop
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
+                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
+                
+                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
+                time.sleep(5)
+        
         
         playbook_output = MorningPlaybookSchema.model_validate_json(response.text)
         logger.info("Node 3 Complete: Morning Playbook generated.")

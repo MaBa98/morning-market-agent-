@@ -137,11 +137,11 @@ class MorningAgentPipeline:
         
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
-        response = self._safe_generate(
-            model="gemini-3.6-flash",
-            contents=prompt_content,
-            config=config
-        )
+        response = self.gemini_client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=prompt_content,
+                    config=config
+                )
     
         
         triage_output = TriageOutputSchema.model_validate_json(response.text)
@@ -178,11 +178,11 @@ class MorningAgentPipeline:
             
             synthesis_prompt = f"Search Query: {triage_output.tavily_search_query}\n\nSearch Results:\n{search_results}"
             
-            synthesis_response = self._safe_generate(
-                model="gemini-3.6-flash",
-                contents=synthesis_prompt,
-                config=config
-            )
+            synthesis_response = self.gemini_client.models.generate_content(
+                        model="gemini-3.6-flash",
+                        contents=synthesis_prompt,
+                        config=config
+                    )
             
             
             logger.info("Node 2 Complete: Research synthesized.")
@@ -227,11 +227,11 @@ class MorningAgentPipeline:
             
         full_context = "\n".join(context_parts)
         
-        synthesis_response = self._safe_generate(
-                model="gemini-3.6-flash",
-                contents=synthesis_prompt,
-                config=config
-            )
+        response = self.gemini_client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=full_context,
+                    config=config
+                )
         
         
         playbook_output = MorningPlaybookSchema.model_validate_json(response.text)

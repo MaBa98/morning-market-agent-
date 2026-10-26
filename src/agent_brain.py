@@ -134,7 +134,7 @@ class MorningAgentPipeline:
                 
                 logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
                 time.sleep(5)
-        )
+    
         
         triage_output = TriageOutputSchema.model_validate_json(response.text)
         logger.info(f"Node 1 Complete. Anomaly detected: {triage_output.anomaly_detected}")

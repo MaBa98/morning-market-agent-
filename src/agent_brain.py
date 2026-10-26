@@ -173,20 +173,20 @@ class MorningAgentPipeline:
             max_retries = 3
             response = None
             for attempt in range(max_retries):
-            try:
-                synthesis_response = self.gemini_client.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=synthesis_prompt,
-                    config=config
-                )
-                break  # Se ha successo, esce dal loop
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
-                    raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
-                
-                logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
-                time.sleep(5)
+                try:
+                    synthesis_response = self.gemini_client.models.generate_content(
+                        model="gemini-3.8-flash",
+                        contents=synthesis_prompt,
+                        config=config
+                    )
+                    break  # Se ha successo, esce dal loop
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        logger.error(f"Generazione fallita dopo {max_retries} tentativi.")
+                        raise e  # Lancia l'errore definitivo se falliscono tutti i tentativi
+                    
+                    logger.warning(f"Drop di rete rilevato (Tentativo {attempt + 1}/{max_retries}). Ritento tra 5 secondi... Errore: {e}")
+                    time.sleep(5)
             
             
             logger.info("Node 2 Complete: Research synthesized.")

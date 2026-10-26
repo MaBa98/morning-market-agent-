@@ -117,7 +117,7 @@ class MorningAgentPipeline:
         prompt_content = f"Harvested Morning Data:\n{payload.model_dump_json(indent=2)}"
         
         response = self._client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-3.8-flash",
             contents=prompt_content,
             config=config
         )
